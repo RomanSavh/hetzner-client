@@ -7,7 +7,7 @@ use crate::{
     CreateFirewallRequest, CreateNetworkRequest, CreateNetworkRequestFirewallModel,
     CreateNetworkResponse, CreateNetworkRouteModel, CreateServerRequest, CreateServerResponse,
     HetznerClientApplyTo, HetznerClientFirewallRules, HetznerClientPublicNetType,
-    HetznerClientSubnetModel, HetznerCreateFirewallResponse,
+    HetznerClientSubnetModel, HetznerCreateFirewallResponse, ServerInfoResponse,
 };
 
 pub struct ApiClient {
@@ -57,17 +57,11 @@ impl ApiClient {
         let req = req.body(body).unwrap();
         let response = client.request(req).await.unwrap();
 
-        println!("Status: {}", response.status());
-
         let body = get_body(response).await;
-
-        println!("Body: {}", String::from_utf8(body.clone()).unwrap());
 
         let str: Result<HetznerCreateFirewallResponse, serde_json::Error> =
             serde_json::from_slice(&body[..]);
         let response = str.unwrap();
-
-        println!("Response: {:?}", response);
         return response;
     }
 
@@ -111,18 +105,14 @@ impl ApiClient {
         let req = req.body(body).unwrap();
         let response = client.request(req).await.unwrap();
 
-        println!("Status: {}", response.status());
-
         let body = get_body(response).await;
 
-        println!("Body: {}", String::from_utf8(body.clone()).unwrap());
 
         let str: Result<CreateNetworkResponse, serde_json::Error> =
             serde_json::from_slice(&body[..]);
 
         let response = str.unwrap();
 
-        println!("Response: {:?}", response);
         response
     }
 
@@ -174,7 +164,7 @@ impl ApiClient {
             )
             .header("Content-Type", "application/json");
 
-        println!("Request: {:?}", serde_json::to_string(&request).unwrap());
+
 
         let body = Body::from(serde_json::to_string(&request).unwrap());
 
@@ -183,20 +173,38 @@ impl ApiClient {
         let req = req.body(body).unwrap();
         let response = client.request(req).await.unwrap();
 
-        println!("Status: {}", response.status());
-
         let body = get_body(response).await;
-
-        println!("Body: {}", String::from_utf8(body.clone()).unwrap());
 
         let str: Result<CreateServerResponse, serde_json::Error> =
             serde_json::from_slice(&body[..]);
 
         let response = str.unwrap();
 
-        println!("Response: {:?}", response);
-
         response
+    }
+
+    pub async fn get_vm_info(&self, vm_id: i64) -> ServerInfoResponse {
+        let url = format!("{}/servers/{}", self.base_url, vm_id);
+
+        let req = Request::builder()
+            .method(Method::GET)
+            .uri(url)
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.api_key.to_string()),
+            )
+            .header("Content-Type", "application/json");
+
+        let https = HttpsConnector::new();
+        let client = Client::builder().build::<_, hyper::Body>(https);
+        let req = req.body(Body::empty()).unwrap();
+        let response = client.request(req).await.unwrap();
+
+        let body = get_body(response).await;
+
+        let str: Result<ServerInfoResponse, serde_json::Error> = serde_json::from_slice(&body[..]);
+
+        return str.unwrap();
     }
 }
 

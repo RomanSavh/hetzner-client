@@ -52,6 +52,27 @@ pub struct CreateServerResponse {
     pub action: HetznerApiActionModel,
     pub next_actions: Vec<HetznerApiActionModel>,
     pub root_password: Option<String>,
+    pub server: ServerInfoResponseServerModel,
+
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ServerInfoResponse {
+    pub server: ServerInfoResponseServerModel,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ServerInfoResponseServerModel{
+    pub id: i64,
+    pub private_net: Vec<ServerInfoResponsePrivateNetworkModel>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ServerInfoResponsePrivateNetworkModel{
+    pub ip: String,
+    pub alias_ips: Vec<String>,
+    pub mac_address: String,
+    pub network: i64,
 }
 
 #[cfg(test)]
